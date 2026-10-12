@@ -14,12 +14,15 @@ RUN mvn clean package -DskipTests -B
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Run as non-root user for security
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
+# Create app user, initialize data directory, and set permissions
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup \
+    && mkdir -p /app/data \
+    && chown -R appuser:appgroup /app
 
-# Copy the executable jar from builder stage
-COPY --from=builder /workspace/target/*.jar app.jar
+# Copy the executable jar with appuser ownership
+COPY --chown=appuser:appgroup --from=builder /workspace/target/*.jar app.jar
+
+USER appuser
 
 # Expose default port (Render/Railway override PORT dynamically)
 ENV PORT=8080
