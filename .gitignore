@@ -16,6 +16,7 @@ frontend/dist/
 # Backend
 backend/target/
 backend/.mvn/
+backend/src/main/resources/static/
 
 # Logs and temporary files
 *.log

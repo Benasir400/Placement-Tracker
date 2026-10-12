@@ -47,7 +47,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/public/**", "/api/auth/invitation").permitAll()
+                .requestMatchers(HttpMethod.GET, "/", "/error", "/api/public/**", "/api/auth/invitation").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register", "/api/auth/accept-invitation").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "PLACEMENT_COORDINATOR")
@@ -75,13 +75,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.stream(allowedOrigins.split(",")).map(String::trim).toList());
+        List<String> origins = Arrays.stream(allowedOrigins.split(",")).map(String::trim).toList();
+        if (origins.contains("*")) {
+            config.setAllowedOriginPatterns(List.of("*"));
+        } else {
+            config.setAllowedOrigins(origins);
+        }
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 

@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # MySQL Database (Optional - can be replaced with cloud managed MySQL or embedded H2)
+  db:
+    image: mysql:8.0
+    container_name: placetrack-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: placetrack
+      MYSQL_USER: placetrack_user
+      MYSQL_PASSWORD: placetrack_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: placetrack-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      DB_URL: jdbc:mysql://db:3306/placetrack?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: placetrack_user
+      DB_PASSWORD: placetrack_password
+      DB_DRIVER: com.mysql.cj.jdbc.Driver
+      JWT_SECRET: production-secret-key-change-this-to-a-very-long-random-string-at-least-256-bits
+      CORS_ALLOWED_ORIGINS: http://localhost:80,http://localhost,http://localhost:5173,http://127.0.0.1:80
+      EMAIL_DEVELOPMENT_MODE: "true"
+      FRONTEND_BASE_URL: http://localhost
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/api/public/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # React Frontend (Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+    container_name: placetrack-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  mysql_data:

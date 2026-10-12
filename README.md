@@ -151,6 +151,16 @@ npm run build
 
 On Windows PowerShell, `npm.cmd run build` avoids local script execution policy issues.
 
+## Deployment
+
+PlaceTrack is configured for multi-cloud deployment with ready-made configurations:
+
+- **Free Tier Cloud (Render + Vercel)**: Follow the complete step-by-step walkthrough in [DEPLOYMENT_GUIDE.md](file:///b:/PlaceTrack/PlaceTrack/docs/DEPLOYMENT_GUIDE.md).
+- **1-Click Render Blueprint**: Uses [render.yaml](file:///b:/PlaceTrack/PlaceTrack/render.yaml) to automatically spin up both backend and frontend.
+- **Docker Compose**: Uses [docker-compose.yml](file:///b:/PlaceTrack/PlaceTrack/docker-compose.yml) to run Backend, Frontend (Nginx), and MySQL (`docker compose up --build`).
+- **Railway**: Configured with [railway.json](file:///b:/PlaceTrack/PlaceTrack/railway.json).
+- **Single-JAR Full-Stack**: Run `.\scripts\package-fullstack-jar.ps1` to embed the React frontend into the Spring Boot backend JAR for single-service hosting.
+
 ## Environment Variables
 
 Backend variables are documented in `backend/.env.example`.
